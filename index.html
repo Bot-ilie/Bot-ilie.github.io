@@ -80,11 +80,8 @@
             statusText.innerText = "⏳ Processing command in cloud, please wait...";
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
+                // Modificam fetch-ul sa trimita o cerere curata GET fara antete restrictive
+                const response = await fetch(`${API_BASE_URL}/api/${endpoint}`);
                 const data = await response.json();
 
                 if (response.ok) {
