@@ -71,7 +71,7 @@
     </div>
 
     <script>
-        const API_BASE_URL = "https://onrender.com";
+        const API_BASE_URL = "https://railway.com";
 
         async function sendApiCommand(endpoint) {
             const statusText = document.getElementById("api-status");
@@ -80,7 +80,6 @@
             statusText.innerText = "⏳ Processing command in cloud, please wait...";
 
             try {
-                // Modificam fetch-ul sa trimita o cerere curata GET fara antete restrictive
                 const response = await fetch(`${API_BASE_URL}/api/${endpoint}`);
                 const data = await response.json();
 
