@@ -3,8 +3,24 @@ import asyncio
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
+from flask import Flask
+from threading import Thread
 
 load_dotenv()
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Ilie Bot is running flawlessly in the cloud 24/7!"
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
+
+def keep_alive():
+    t = Thread(target=run_web_server)
+    t.start()
 
 class IlieBot(discord.Client):
     def __init__(self):
@@ -16,11 +32,11 @@ class IlieBot(discord.Client):
 
 client = IlieBot()
 
-TARGET_ROLE_NAME = "Membru"
+EXCLUDED_CHANNELS = ["regulament", "reguli", "anunturi", "announcements", "welcome"]
 
 @client.event
 async def on_ready():
-    print(f"🔒 Ilie ruleaza acum cu BLOCARE RAPIDA pe roluri! 🐍👑")
+    print(f"🔒 {client.user} s-a trezit si e ONLINE in Python! 🐍🔥")
 
 @client.event
 async def on_message(message: discord.Message):
@@ -36,58 +52,46 @@ async def on_message(message: discord.Message):
 async def lockdown(interaction: discord.Interaction):
     await interaction.response.defer()
     try:
-        role = discord.utils.get(interaction.guild.roles, name=TARGET_ROLE_NAME)
+        role = discord.utils.get(interaction.guild.roles, name="Membru")
         everyone_role = interaction.guild.default_role
-        
         tasks = []
-
         if role:
             perms = discord.Permissions(role.permissions.value)
             perms.update(send_messages=False)
             tasks.append(role.edit(permissions=perms, reason="IlieBot Lockdown Executed"))
-            
         everyone_perms = discord.Permissions(everyone_role.permissions.value)
-        everyone_perms.update(send_messages=False)
-        tasks.append(everyone_role.edit(permissions=everyone_perms, reason="IlieBot Lockdown Executed"))
-        
+        everyone_permissions.update(send_messages=False)
+        tasks.append(everyone_role.edit(permissions=everyone_permissions, reason="IlieBot Lockdown Executed"))
         await asyncio.gather(*tasks)
-        
-        await interaction.followup.send(
-            f"🚨🚨 **Lockdown total executat!** Rolul '{TARGET_ROLE_NAME}' si '@everyone' au fost dezactivate global!\n"
-            f"*Notă: Utilizatorii pot vorbi în continuare în canalele cu permisiuni specifice (Channel Overwrites) setate explicit pe 'True'.*"
-        )
+        await interaction.followup.send("🚨🚨 **Lockdown total executat global!** 🚨🚨")
     except discord.Forbidden:
-        await interaction.followup.send("Nu am permisiuni suficiente! Asigură-te că rolul botului este deasupra rolurilor modificate.")
+        await interaction.followup.send("Nu am permisiuni suficiente!")
     except Exception as e:
-        print(f"Eroare lockdown roluri: {e}")
-        await interaction.followup.send("Nu am putut modifica rolurile globale.")
+        print(f"Eroare lockdown: {e}")
+        await interaction.followup.send("Nu am putut modifica rolurile.")
 
 @client.tree.command(name="unlockdown", description="Porneste permisiunea de scris inapoi pe ambele roluri!")
 @app_commands.default_permissions(administrator=True)
 async def unlockdown(interaction: discord.Interaction):
     await interaction.response.defer()
     try:
-        role = discord.utils.get(interaction.guild.roles, name=TARGET_ROLE_NAME)
+        role = discord.utils.get(interaction.guild.roles, name="Membru")
         everyone_role = interaction.guild.default_role
-        
         tasks = []
-
         if role:
             perms = discord.Permissions(role.permissions.value)
             perms.update(send_messages=True)
             tasks.append(role.edit(permissions=perms, reason="IlieBot Unlockdown Executed"))
-            
         everyone_perms = discord.Permissions(everyone_role.permissions.value)
         everyone_perms.update(send_messages=True)
-        tasks.append(everyone_role.edit(permissions=everyone_perms, reason="IlieBot Unlockdown Executed"))
-        
+        tasks.append(everyone_role.edit(permissions=everyone_permissions, reason="IlieBot Unlockdown Executed"))
         await asyncio.gather(*tasks)
-        
-        await interaction.followup.send(f"🔓 **Misiune indeplinita! Ambele roluri pot scrie din nou global!** 🔓")
+        await interaction.followup.send("🔓 **Misiune indeplinita! Ambele roluri pot scrie din nou global!** 🔓")
     except discord.Forbidden:
-        await interaction.followup.send("Eroare de permisiune! Verifică ierarhia rolurilor din server.")
+        await interaction.followup.send("Eroare de permisiune!")
     except Exception as e:
-        print(f"Eroare unlockdown roluri: {e}")
-        await interaction.followup.send("Am esuat deblocarea rolurilor globale.")
+        print(f"Eroare unlockdown: {e}")
+        await interaction.followup.send("Am esuat deblocarea rolurilor.")
 
+keep_alive()
 client.run(os.getenv("DISCORD_TOKEN"))
